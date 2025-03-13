@@ -25,7 +25,7 @@ class GridWorldEnvironment:
     
     # Cell type constants
     EMPTY = 0
-    WALL = -1
+    WALL = -100  # Using a distinct value for walls to avoid confusion with trap penalties
     
     # Action direction mappings
     ACTION_DIRS = {
@@ -51,7 +51,7 @@ class GridWorldEnvironment:
         Initialize the environment with the given parameters.
         
         Args:
-            grid (np.ndarray or list): The grid layout. 0 for empty cells, -1 for walls,
+            grid (np.ndarray or list): The grid layout. 0 for empty cells, WALL for walls,
                                       positive values for goals, negative values for traps.
             start_state (tuple): The starting position (row, col).
             goal_states (list): List of goal positions [(row, col), ...].
@@ -89,15 +89,14 @@ class GridWorldEnvironment:
         self.trap_penalty = trap_penalty
         self.custom_rewards = custom_rewards or {}
         
-        # Set grid cell values for goals and traps
-        # If not already set, we use the provided rewards
+        # Mark grid positions with goals and traps for visualization only
+        # This doesn't affect the reward calculation
         for goal in goal_states:
-            if self.grid[goal] <= 0:
-                self.grid[goal] = goal_reward
+            self.grid[goal] = goal_reward
                 
         for trap in trap_states:
-            if self.grid[trap] >= 0:
-                self.grid[trap] = -trap_penalty  # Note: grid shows negative value for traps
+            # Use a small negative value that isn't WALL
+            self.grid[trap] = -trap_penalty
         
         # Initialize environment state
         self.current_state = None
