@@ -14,20 +14,28 @@ def create_standard_grid():
     
     return grid
 
-def create_complex_grid(size=10):
-    """Create a more complex grid with multiple goals and traps."""
+def create_complex_grid(size=10, reserved_positions=None):
+    """Create a more complex grid with multiple goals and traps.
+    
+    Args:
+        size: Size of the grid
+        reserved_positions: List of (row, col) positions that should not be walls
+    """
+    if reserved_positions is None:
+        reserved_positions = []
+    
     grid = np.zeros((size, size))
     
     # Add walls in a maze-like pattern
     for i in range(2, size, 2):
         for j in range(size):
-            if j != i % size:  # Leave one opening in each wall
+            if j != i % size and (i, j) not in reserved_positions:  # Leave openings
                 grid[i, j] = -1
     
     # Add some vertical walls too
     for i in range(size):
         for j in range(3, size, 3):
-            if i != j % size and grid[i, j] != -1:  # Don't overwrite existing walls
+            if i != j % size and grid[i, j] != -1 and (i, j) not in reserved_positions:
                 grid[i, j] = -1
     
     return grid
@@ -122,13 +130,14 @@ def demonstrate_complex_environment():
     """Demonstrate a more complex environment with multiple goals and traps."""
     print("Demonstrating complex environment...")
     
-    # Create a complex grid
-    grid = create_complex_grid(10)
-    
     # Define multiple start, goal, and trap states
     start_state = (0, 0)
     goal_states = [(9, 9), (0, 9), (9, 0)]
     trap_states = [(4, 4), (5, 5), (6, 6)]
+    
+    # Create a complex grid, reserving positions for start, goals, and traps
+    reserved_positions = [start_state] + goal_states + trap_states
+    grid = create_complex_grid(10, reserved_positions)
     
     # Add custom rewards
     custom_rewards = {
