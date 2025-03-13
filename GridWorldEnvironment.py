@@ -45,7 +45,7 @@ class GridWorldEnvironment:
     
     def __init__(self, grid, start_state, goal_states, trap_states, 
                  is_stochastic=False, transition_prob=0.8, 
-                 step_cost=-0.01, goal_reward=1.0, trap_penalty=-1.0,
+                 step_cost=-0.01, goal_reward=1.0, trap_penalty=1.0,
                  custom_rewards=None, max_steps=1000):
         """
         Initialize the environment with the given parameters.
@@ -97,7 +97,7 @@ class GridWorldEnvironment:
                 
         for trap in trap_states:
             if self.grid[trap] >= 0:
-                self.grid[trap] = -trap_penalty
+                self.grid[trap] = -trap_penalty  # Note: grid shows negative value for traps
         
         # Initialize environment state
         self.current_state = None
@@ -214,11 +214,11 @@ class GridWorldEnvironment:
         
         # Check if next state is a goal
         if next_state in self.goal_states:
-            return self.goal_reward  # Use direct goal reward value 
+            return self.goal_reward
         
         # Check if next state is a trap
         if next_state in self.trap_states:
-            return -self.trap_penalty  # Return negative penalty directly
+            return -self.trap_penalty  # Negative because it's a penalty
         
         # Otherwise, return step cost for taking an action
         return self.step_cost
