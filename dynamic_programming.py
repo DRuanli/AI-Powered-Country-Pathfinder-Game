@@ -22,7 +22,7 @@ class DynamicProgramming:
         """
         self.env = environment
         
-    def value_iteration(self, gamma=0.9, epsilon=1e-6, max_iterations=1000):
+    def value_iteration(self, gamma=0.9, epsilon=1e-6, max_iterations=300):
         """
         Implement Value Iteration algorithm.
         
@@ -93,10 +93,12 @@ class DynamicProgramming:
                         next_r, next_c = next_state
                         
                         if next_state in self.env.goal_states:
-                            # For goal states, just use reward (no future rewards)
+                            # For goal states, use reward with no future rewards
+                            # The value should be the goal reward (which is captured in the reward calculation)
                             next_value = 0
                         elif next_state in self.env.trap_states:
-                            # For trap states, just use reward (no future rewards)
+                            # For trap states, use reward with no future rewards
+                            # The value should be the trap penalty (which is captured in the reward calculation)
                             next_value = 0
                         else:
                             next_value = V[next_r, next_c]
@@ -169,7 +171,7 @@ class DynamicProgramming:
         
         return policy, V, metrics
     
-    def policy_iteration(self, gamma=0.9, max_iterations=100, eval_epsilon=1e-6, eval_max_iterations=100):
+    def policy_iteration(self, gamma=0.9, max_iterations=30, eval_epsilon=1e-6, eval_max_iterations=50):
         """
         Implement Policy Iteration algorithm.
         
@@ -239,11 +241,12 @@ class DynamicProgramming:
                 
                 old_action = policy[r, c]
                 
-                # Find best action
+                # Find best action - only consider valid actions
                 best_action = None
                 best_value = float('-inf')
                 
-                for action in all_actions:
+                valid_actions = self.env.get_valid_actions(state)
+                for action in valid_actions:
                     # Get transition probabilities
                     transitions = self.env.get_transition_probabilities(state, action)
                     
