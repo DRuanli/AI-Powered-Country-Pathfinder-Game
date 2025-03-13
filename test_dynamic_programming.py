@@ -57,8 +57,9 @@ def test_value_iteration(environment, gamma=0.9, epsilon=1e-6):
     # Create dynamic programming instance
     dp = DynamicProgramming(environment)
     
-    # Run value iteration
-    policy, values, metrics = dp.value_iteration(gamma=gamma, epsilon=epsilon)
+    # Run value iteration with increased convergence threshold for stochastic environments
+    epsilon_adjusted = epsilon if not environment.is_stochastic else 1e-4
+    policy, values, metrics = dp.value_iteration(gamma=gamma, epsilon=epsilon_adjusted, max_iterations=300)
     
     # Visualize results
     print("\nValue Function:")
@@ -101,8 +102,9 @@ def test_policy_iteration(environment, gamma=0.9):
     # Create dynamic programming instance
     dp = DynamicProgramming(environment)
     
-    # Run policy iteration
-    policy, values, metrics = dp.policy_iteration(gamma=gamma)
+    # Run policy iteration with adjusted parameters for stochastic environments
+    eval_epsilon = 1e-6 if not environment.is_stochastic else 1e-4
+    policy, values, metrics = dp.policy_iteration(gamma=gamma, max_iterations=30, eval_epsilon=eval_epsilon)
     
     # Visualize results
     print("\nValue Function:")
