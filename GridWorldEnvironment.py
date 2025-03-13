@@ -113,9 +113,9 @@ class GridWorldEnvironment:
         """Validate that a state is within the grid boundaries and not a wall."""
         row, col = state
         if not (0 <= row < self.height and 0 <= col < self.width):
-            raise ValueError(f"{state_name} {state} is outside grid boundaries.")
+            raise ValueError(f"{state_name} {state} is outside grid boundaries. Grid dimensions: {self.height}x{self.width}")
         if self.grid[row, col] == self.WALL:
-            raise ValueError(f"{state_name} {state} is inside a wall.")
+            raise ValueError(f"{state_name} {state} is inside a wall. Please ensure this position isn't marked as a wall in your grid.")
     
     def reset(self):
         """
