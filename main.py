@@ -20,165 +20,100 @@ def print_header():
     print("=" * 50 + "\n")
 
 def create_custom_grid():
-    """Allow user to create a custom grid world."""
-    print("Create your custom grid world!\n")
+    """Automatically create a custom grid world with minimal user input."""
+    print("Creating custom grid world!\n")
     
-    # Get grid dimensions
+    # Ask for grid size
     while True:
         try:
-            height = int(input("Enter grid height (2-10): "))
-            width = int(input("Enter grid width (2-10): "))
-            if 2 <= height <= 10 and 2 <= width <= 10:
+            size = int(input("Enter grid size (5-15): "))
+            if 5 <= size <= 15:
                 break
             else:
-                print("Dimensions must be between 2 and 10.")
+                print("Size must be between 5 and 15.")
         except ValueError:
-            print("Please enter valid numbers.")
+            print("Please enter a valid number.")
     
-    # Initialize grid with empty cells
-    grid = np.zeros((height, width))
-    
-    # Get start position
+    # Ask for difficulty level
     while True:
         try:
-            print("\nSet start position:")
-            start_row = int(input(f"Row (0-{height-1}): "))
-            start_col = int(input(f"Column (0-{width-1}): "))
-            if 0 <= start_row < height and 0 <= start_col < width:
-                start_state = (start_row, start_col)
+            print("\nSelect difficulty level:")
+            print("1. Easy (few walls and traps)")
+            print("2. Medium (moderate walls and traps)")
+            print("3. Hard (many walls and traps)")
+            difficulty = int(input("\nEnter difficulty (1-3): "))
+            if 1 <= difficulty <= 3:
                 break
             else:
-                print("Position out of bounds.")
+                print("Please select 1, 2, or 3.")
         except ValueError:
-            print("Please enter valid numbers.")
+            print("Please enter a valid number.")
     
-    # Get goal positions
-    goal_states = []
-    while True:
-        try:
-            print("\nAdd goal position (enter -1 to finish):")
-            goal_row = int(input(f"Row (0-{height-1}, -1 to finish): "))
-            if goal_row == -1:
-                if not goal_states:
-                    print("Please add at least one goal.")
-                    continue
-                break
-            goal_col = int(input(f"Column (0-{width-1}): "))
-            if 0 <= goal_row < height and 0 <= goal_col < width:
-                if (goal_row, goal_col) == start_state:
-                    print("Cannot set start position as goal.")
-                    continue
-                if (goal_row, goal_col) in goal_states:
-                    print("Position already set as goal.")
-                    continue
-                goal_states.append((goal_row, goal_col))
-                print(f"Goal added at ({goal_row}, {goal_col})")
-            else:
-                print("Position out of bounds.")
-        except ValueError:
-            print("Please enter valid numbers.")
+    # Initialize grid
+    grid = np.zeros((size, size))
     
-    # Get trap positions
+    # Set wall density based on difficulty
+    if difficulty == 1:
+        wall_density = 0.1
+        num_traps = max(1, size // 5)
+    elif difficulty == 2:
+        wall_density = 0.2
+        num_traps = max(2, size // 4)
+    else:
+        wall_density = 0.3
+        num_traps = max(3, size // 3)
+    
+    # Set start state (always at top-left)
+    start_state = (0, 0)
+    
+    # Set goal state (usually at bottom-right but with some randomness)
+    goal_row = np.random.randint(size//2, size)
+    goal_col = np.random.randint(size//2, size)
+    goal_states = [(goal_row, goal_col)]
+    
+    # Generate traps
     trap_states = []
-    while True:
-        try:
-            print("\nAdd trap position (enter -1 to finish):")
-            trap_row = int(input(f"Row (0-{height-1}, -1 to finish): "))
-            if trap_row == -1:
-                break
-            trap_col = int(input(f"Column (0-{width-1}): "))
-            if 0 <= trap_row < height and 0 <= trap_col < width:
-                if (trap_row, trap_col) == start_state:
-                    print("Cannot set start position as trap.")
-                    continue
-                if (trap_row, trap_col) in goal_states:
-                    print("Cannot set goal position as trap.")
-                    continue
-                if (trap_row, trap_col) in trap_states:
-                    print("Position already set as trap.")
-                    continue
-                trap_states.append((trap_row, trap_col))
-                print(f"Trap added at ({trap_row}, {trap_col})")
-            else:
-                print("Position out of bounds.")
-        except ValueError:
-            print("Please enter valid numbers.")
-    
-    # Get wall positions
-    walls = []
-    while True:
-        try:
-            print("\nAdd wall position (enter -1 to finish):")
-            wall_row = int(input(f"Row (0-{height-1}, -1 to finish): "))
-            if wall_row == -1:
-                break
-            wall_col = int(input(f"Column (0-{width-1}): "))
-            if 0 <= wall_row < height and 0 <= wall_col < width:
-                if (wall_row, wall_col) == start_state:
-                    print("Cannot set start position as wall.")
-                    continue
-                if (wall_row, wall_col) in goal_states:
-                    print("Cannot set goal position as wall.")
-                    continue
-                if (wall_row, wall_col) in trap_states:
-                    print("Cannot set trap position as wall.")
-                    continue
-                walls.append((wall_row, wall_col))
-                grid[wall_row, wall_col] = -100  # Set wall value
-                print(f"Wall added at ({wall_row}, {wall_col})")
-            else:
-                print("Position out of bounds.")
-        except ValueError:
-            print("Please enter valid numbers.")
-    
-    # Get environment parameters
-    is_stochastic = input("\nMake environment stochastic? (y/n): ").lower() == 'y'
-    transition_prob = 0.8
-    if is_stochastic:
+    for _ in range(num_traps):
         while True:
-            try:
-                transition_prob = float(input("Enter transition probability (0.5-1.0): "))
-                if 0.5 <= transition_prob <= 1.0:
-                    break
-                else:
-                    print("Probability must be between 0.5 and 1.0.")
-            except ValueError:
-                print("Please enter a valid number.")
+            trap_row = np.random.randint(1, size-1)
+            trap_col = np.random.randint(1, size-1)
+            candidate = (trap_row, trap_col)
+            
+            # Make sure traps don't overlap with start, goals, or other traps
+            if (candidate != start_state and 
+                candidate not in goal_states and 
+                candidate not in trap_states):
+                trap_states.append(candidate)
+                break
     
+    # Generate walls
+    reserved_positions = [start_state] + goal_states + trap_states
+    num_walls = int(wall_density * size * size)
+    for _ in range(num_walls):
+        attempts = 0
+        while attempts < 10:  # Limit attempts to avoid infinite loop
+            wall_row = np.random.randint(0, size)
+            wall_col = np.random.randint(0, size)
+            candidate = (wall_row, wall_col)
+            
+            if candidate not in reserved_positions:
+                grid[wall_row, wall_col] = -100  # Set wall value
+                reserved_positions.append(candidate)
+                break
+            
+            attempts += 1
+    
+    # Create a path from start to goal (to ensure solvability)
+    ensure_path_exists(grid, start_state, goal_states[0])
+    
+    # Set environment parameters based on difficulty
+    is_stochastic = difficulty > 1
+    transition_prob = 0.8
     step_cost = -0.1
-    while True:
-        try:
-            step_cost = float(input("\nEnter step cost (negative value, e.g. -0.1): "))
-            if step_cost <= 0:
-                break
-            else:
-                print("Step cost must be negative or zero.")
-        except ValueError:
-            print("Please enter a valid number.")
-    
     goal_reward = 1.0
-    while True:
-        try:
-            goal_reward = float(input("\nEnter goal reward (positive value, e.g. 1.0): "))
-            if goal_reward > 0:
-                break
-            else:
-                print("Goal reward must be positive.")
-        except ValueError:
-            print("Please enter a valid number.")
-    
     trap_penalty = 1.0
-    while True:
-        try:
-            trap_penalty = float(input("\nEnter trap penalty (positive value, e.g. 1.0): "))
-            if trap_penalty > 0:
-                break
-            else:
-                print("Trap penalty must be positive.")
-        except ValueError:
-            print("Please enter a valid number.")
     
-    # Create and return the environment
+    # Create and display the environment
     env = GridWorldEnvironment(
         grid=grid,
         start_state=start_state,
@@ -191,7 +126,63 @@ def create_custom_grid():
         trap_penalty=trap_penalty
     )
     
+    # Show the generated grid
+    print("\nGenerated grid world:")
+    env.render()
+    
+    print(f"\nStart position: {start_state}")
+    print(f"Goal position(s): {goal_states}")
+    print(f"Trap position(s): {trap_states}")
+    print(f"Environment is {'stochastic' if is_stochastic else 'deterministic'}")
+    print(f"Step cost: {step_cost}, Goal reward: {goal_reward}, Trap penalty: {trap_penalty}")
+    
+    input("\nPress Enter to continue...")
+    
     return env
+
+def ensure_path_exists(grid, start, goal):
+    """Ensure there's a valid path from start to goal by removing blocking walls."""
+    # Simple implementation using A* algorithm
+    size = grid.shape[0]
+    visited = set()
+    queue = [(manhattan_distance(start, goal), 0, start, [])]  # (f, g, position, path)
+    
+    while queue:
+        # Sort by f value (A* heuristic)
+        queue.sort()
+        _, g, current, path = queue.pop(0)
+        
+        if current == goal:
+            # Path found, no need to change the grid
+            return
+        
+        if current in visited:
+            continue
+        
+        visited.add(current)
+        
+        # Try each direction
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
+        for dx, dy in directions:
+            nx, ny = current[0] + dx, current[1] + dy
+            next_pos = (nx, ny)
+            
+            # Check if within bounds
+            if 0 <= nx < size and 0 <= ny < size:
+                if next_pos not in visited:
+                    # If there's a wall, remove it to create a path
+                    if grid[nx, ny] == -100:
+                        grid[nx, ny] = 0  # Remove wall
+                    
+                    # Add to queue
+                    new_g = g + 1
+                    new_f = new_g + manhattan_distance(next_pos, goal)
+                    new_path = path + [next_pos]
+                    queue.append((new_f, new_g, next_pos, new_path))
+
+def manhattan_distance(pos1, pos2):
+    """Calculate Manhattan distance between two positions."""
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 def load_predefined_grid():
     """Load a predefined grid world."""
