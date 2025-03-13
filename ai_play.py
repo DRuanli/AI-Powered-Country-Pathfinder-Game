@@ -2,11 +2,13 @@
 import numpy as np
 import argparse
 import os
+import pickle
+import sys
 from GridWorldEnvironment import GridWorldEnvironment
 from dynamic_programming import DynamicProgramming
 from td_learning import TDLearning
 from deep_rl import dqn
-from pygame_visualizer import visualize_with_ai, visualize_interactive
+from pygame_visualizer import visualize_with_ai, visualize_interactive, LargeMapVisualizer
 
 def clear_screen():
     """Clear the terminal screen."""
@@ -338,18 +340,41 @@ def choose_agent(env):
         print("\nYou'll play on your own!")
         return None
 
+def load_large_map(filename):
+    """Load a large map from a pickle file."""
+    try:
+        with open(filename, 'rb') as f:
+            env = pickle.load(f)
+        print(f"Successfully loaded map from {filename}")
+        print(f"Grid dimensions: {env.height}x{env.width}")
+        print(f"Start position: {env.start_state}")
+        print(f"Goal position(s): {env.goal_states}")
+        print(f"Number of traps: {len(env.trap_states)}")
+        return env
+    except Exception as e:
+        print(f"Error loading map from {filename}: {e}")
+        return None
+
 def main():
     parser = argparse.ArgumentParser(description='Reinforcement Learning Grid World Game with Pygame Visualization')
     parser.add_argument('--custom', action='store_true', help='Create a custom grid')
     parser.add_argument('--predefined', action='store_true', help='Use a predefined grid')
     parser.add_argument('--interactive', action='store_true', help='Play the game yourself')
+    parser.add_argument('--load', type=str, help='Load map from pickle file')
+    parser.add_argument('--no-train', action='store_true', help='Skip training an agent (for large maps)')
     args = parser.parse_args()
     
     clear_screen()
     print_header()
     
-    # Choose grid
-    if args.custom:
+    # Load map from file if specified
+    if args.load:
+        env = load_large_map(args.load)
+        if env is None:
+            print("Failed to load map. Exiting.")
+            return
+    # Otherwise choose grid
+    elif args.custom:
         env = create_custom_grid()
     elif args.predefined:
         env = load_predefined_grid()
@@ -357,37 +382,75 @@ def main():
         print("Select grid mode:\n")
         print("1. Create custom grid")
         print("2. Use predefined grid")
+        print("3. Load from file")
         
-        choice = input("\nEnter your choice (1-2): ")
+        choice = input("\nEnter your choice (1-3): ")
         if choice == "1":
             env = create_custom_grid()
-        else:
+        elif choice == "2":
             env = load_predefined_grid()
+        elif choice == "3":
+            filename = input("Enter the path to the map file: ")
+            env = load_large_map(filename)
+            if env is None:
+                print("Failed to load map. Exiting.")
+                return
+        else:
+            print("Invalid choice. Exiting.")
+            return
+    
+    # Detect if map is very large
+    is_large_map = env.height > 50 or env.width > 50
     
     # Check if the user wants to play interactively
     if args.interactive:
         print("\nStarting interactive game...")
-        visualize_interactive(env)
+        if is_large_map:
+            # Use the large map visualizer for interactive mode
+            visualizer = LargeMapVisualizer(env)
+            visualizer.run_interactive()
+        else:
+            visualize_interactive(env)
         return
     
-    # Choose agent
-    policy = choose_agent(env)
+    # Choose agent, but skip for large maps if requested
+    policy = None
+    if not args.no_train and not is_large_map:
+        policy = choose_agent(env)
+    elif is_large_map:
+        print("\nLarge map detected!")
+        if not args.no_train:
+            print("Warning: Training agents on large maps can be very slow.")
+            train_anyway = input("Do you want to train an agent anyway? (y/n): ").lower()
+            if train_anyway == 'y':
+                policy = choose_agent(env)
+            else:
+                print("Skipping agent training.")
+        else:
+            print("Skipping agent training as requested.")
     
     # Start visualization
-    print("\nStarting AI visualization...")
+    print("\nStarting visualization...")
     print("Press SPACE to play/pause, +/- to adjust speed, R to reset, Q to quit")
     
-    # Calculate an appropriate cell size based on grid dimensions
-    max_dim = max(env.height, env.width)
-    if max_dim <= 5:
-        cell_size = 80
-    elif max_dim <= 10:
-        cell_size = 60
+    if is_large_map:
+        print("Large map controls: WASD to move camera, Mouse wheel to zoom")
+        visualizer = LargeMapVisualizer(env)
+        if policy:
+            visualizer.set_policy(policy)
+        visualizer.run_episode(policy)
     else:
-        cell_size = 40
-    
-    # Run visualization
-    visualize_with_ai(env, policy, cell_size=cell_size)
+        # Calculate an appropriate cell size based on grid dimensions
+        max_dim = max(env.height, env.width)
+        if max_dim <= 5:
+            cell_size = 80
+        elif max_dim <= 10:
+            cell_size = 60
+        else:
+            cell_size = 40
+        
+        # Run visualization
+        visualize_with_ai(env, policy, cell_size=cell_size)
 
 if __name__ == "__main__":
     main()
