@@ -162,13 +162,15 @@ class GridWorldEnvironment:
         self.episode_states.append(next_state)
         
         # Check if episode is done
-        done = self._is_terminal_state(next_state) or self.steps >= self.max_steps
+        in_goal = any(next_state == goal for goal in self.goal_states)
+        in_trap = any(next_state == trap for trap in self.trap_states)
+        done = in_goal or in_trap or self.steps >= self.max_steps
         
         # Additional info
         info = {
             'steps': self.steps,
-            'is_goal': next_state in self.goal_states,
-            'is_trap': next_state in self.trap_states,
+            'is_goal': in_goal,
+            'is_trap': in_trap,
             'is_max_steps': self.steps >= self.max_steps
         }
         
@@ -213,19 +215,28 @@ class GridWorldEnvironment:
             return self.custom_rewards[(state[0], state[1], action)]
         
         # Check if next state is a goal
-        if next_state in self.goal_states:
-            return self.goal_reward
+        for goal in self.goal_states:
+            if next_state == goal:
+                return self.goal_reward
         
         # Check if next state is a trap
-        if next_state in self.trap_states:
-            return -self.trap_penalty  # Negative because it's a penalty
+        for trap in self.trap_states:
+            if next_state == trap:
+                return -self.trap_penalty  # Negative because it's a penalty
         
         # Otherwise, return step cost for taking an action
         return self.step_cost
     
     def _is_terminal_state(self, state):
         """Check if the state is terminal (goal or trap)."""
-        return state in self.goal_states or state in self.trap_states
+        # Explicitly check membership to ensure correct behavior
+        for goal in self.goal_states:
+            if state == goal:
+                return True
+        for trap in self.trap_states:
+            if state == trap:
+                return True
+        return False
     
     def get_valid_actions(self, state=None):
         """
