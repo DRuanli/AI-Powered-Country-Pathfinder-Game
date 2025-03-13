@@ -214,11 +214,11 @@ class GridWorldEnvironment:
         
         # Check if next state is a goal
         if next_state in self.goal_states:
-            return self.grid[next_state]  # Use value in grid or default reward
+            return self.goal_reward  # Use direct goal reward value 
         
         # Check if next state is a trap
         if next_state in self.trap_states:
-            return self.grid[next_state]  # Use value in grid or default penalty
+            return -self.trap_penalty  # Return negative penalty directly
         
         # Otherwise, return step cost for taking an action
         return self.step_cost
