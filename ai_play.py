@@ -124,7 +124,8 @@ def create_custom_grid():
         transition_prob=transition_prob,
         step_cost=step_cost,
         goal_reward=goal_reward,
-        trap_penalty=trap_penalty
+        trap_penalty=trap_penalty,
+        max_steps=float('inf')  # Remove step limit
     )
     
     # Show the generated grid
@@ -136,6 +137,7 @@ def create_custom_grid():
     print(f"Trap position(s): {trap_states}")
     print(f"Environment is {'stochastic' if is_stochastic else 'deterministic'}")
     print(f"Step cost: {step_cost}, Goal reward: {goal_reward}, Trap penalty: {trap_penalty}")
+    print("No maximum step limit")
     
     input("\nPress Enter to continue...")
     
@@ -213,7 +215,8 @@ def load_predefined_grid():
             is_stochastic=False,
             step_cost=-0.1,
             goal_reward=1.0,
-            trap_penalty=1.0
+            trap_penalty=1.0,
+            max_steps=float('inf')  # Remove step limit
         )
         
     elif choice == "2":
@@ -245,7 +248,8 @@ def load_predefined_grid():
             transition_prob=0.8,
             step_cost=-0.05,
             goal_reward=1.0,
-            trap_penalty=1.0
+            trap_penalty=1.0,
+            max_steps=float('inf')  # Remove step limit
         )
         
     elif choice == "3":
@@ -276,7 +280,8 @@ def load_predefined_grid():
             is_stochastic=False,
             step_cost=-0.1,
             goal_reward=1.0,
-            trap_penalty=1.0
+            trap_penalty=1.0,
+            max_steps=float('inf')  # Remove step limit
         )
     
     else:
@@ -345,11 +350,16 @@ def load_large_map(filename):
     try:
         with open(filename, 'rb') as f:
             env = pickle.load(f)
+            
+        # Remove max steps limitation
+        env.max_steps = float('inf')
+            
         print(f"Successfully loaded map from {filename}")
         print(f"Grid dimensions: {env.height}x{env.width}")
         print(f"Start position: {env.start_state}")
         print(f"Goal position(s): {env.goal_states}")
         print(f"Number of traps: {len(env.trap_states)}")
+        print("Max steps limitation removed")
         return env
     except Exception as e:
         print(f"Error loading map from {filename}: {e}")

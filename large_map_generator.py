@@ -103,7 +103,7 @@ def generate_large_map(size, wall_density=0.2, is_stochastic=False):
         step_cost=-0.01,
         goal_reward=1.0,
         trap_penalty=1.0,
-        max_steps=size*4  # Increase max steps for large maps
+        max_steps=float('inf')  # Set to infinity to remove step limit
     )
     
     elapsed_time = time.time() - start_time

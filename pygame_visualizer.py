@@ -364,8 +364,6 @@ class GridWorldVisualizer:
                         self.episode_result = "Goal Reached!"
                     elif info.get('is_trap', False):
                         self.episode_result = "Fell into Trap!"
-                    elif info.get('is_max_steps', False):
-                        self.episode_result = "Max Steps Reached"
                     else:
                         self.episode_result = "Episode Ended"
             
@@ -429,8 +427,6 @@ class GridWorldVisualizer:
                                     self.episode_result = "Goal Reached!"
                                 elif info.get('is_trap', False):
                                     self.episode_result = "Fell into Trap!"
-                                elif info.get('is_max_steps', False):
-                                    self.episode_result = "Max Steps Reached"
                                 else:
                                     self.episode_result = "Episode Ended"
             
@@ -947,8 +943,6 @@ class LargeMapVisualizer(GridWorldVisualizer):
                         self.episode_result = "Goal Reached!"
                     elif info.get('is_trap', False):
                         self.episode_result = "Fell into Trap!"
-                    elif info.get('is_max_steps', False):
-                        self.episode_result = "Max Steps Reached"
                     else:
                         self.episode_result = "Episode Ended"
             
@@ -1018,8 +1012,6 @@ class LargeMapVisualizer(GridWorldVisualizer):
                                     self.episode_result = "Goal Reached!"
                                 elif info.get('is_trap', False):
                                     self.episode_result = "Fell into Trap!"
-                                elif info.get('is_max_steps', False):
-                                    self.episode_result = "Max Steps Reached"
                                 else:
                                     self.episode_result = "Episode Ended"
                 
