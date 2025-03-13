@@ -70,8 +70,15 @@ def test_value_iteration(environment, gamma=0.9, epsilon=1e-6):
     print("\nConvergence:")
     dp.visualize_convergence(metrics, algorithm="Value Iteration")
     
+    # Convert policy from 2D array to dictionary format
+    policy_dict = {}
+    for r in range(environment.height):
+        for c in range(environment.width):
+            if environment.grid[r, c] != environment.WALL and (r, c) not in environment.goal_states and (r, c) not in environment.trap_states:
+                policy_dict[(r, c)] = policy[r, c]
+    
     # Run a test episode with the policy
-    total_reward, steps, states = environment.run_episode(policy=policy)
+    total_reward, steps, states = environment.run_episode(policy=policy_dict)
     print(f"\nTest Episode Results:")
     print(f"Total reward: {total_reward}")
     print(f"Steps taken: {steps}")
@@ -107,8 +114,15 @@ def test_policy_iteration(environment, gamma=0.9):
     print("\nConvergence:")
     dp.visualize_convergence(metrics, algorithm="Policy Iteration")
     
+    # Convert policy from 2D array to dictionary format
+    policy_dict = {}
+    for r in range(environment.height):
+        for c in range(environment.width):
+            if environment.grid[r, c] != environment.WALL and (r, c) not in environment.goal_states and (r, c) not in environment.trap_states:
+                policy_dict[(r, c)] = policy[r, c]
+    
     # Run a test episode with the policy
-    total_reward, steps, states = environment.run_episode(policy=policy)
+    total_reward, steps, states = environment.run_episode(policy=policy_dict)
     print(f"\nTest Episode Results:")
     print(f"Total reward: {total_reward}")
     print(f"Steps taken: {steps}")
